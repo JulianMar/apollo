@@ -125,6 +125,20 @@ export default defineNuxtPlugin((nuxtApp) => {
                 ])
           ])
     ])
+
+    clients[key as ApolloClientKeys] = new ApolloClient({
+      link,
+      ...(NuxtApollo.clientAwareness && { name: key }),
+      ...(import.meta.server
+        ? { ssrMode: true }
+        : { ssrForceFetchDelay: 100 }),
+      devtools: { enabled: clientConfig.connectToDevTools || false },
+      defaultOptions: clientConfig?.defaultOptions
+    })
+
+    if (!clients?.default && !NuxtApollo?.clients?.default && key === Object.keys(NuxtApollo.clients)[0]) {
+      clients.default = clients[key as ApolloClientKeys]
+    }
   }
 
   provideApolloClients(clients)

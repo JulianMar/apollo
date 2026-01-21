@@ -2,7 +2,7 @@ import { onError } from "@apollo/client/link/error";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createApolloProvider } from "@vue/apollo-option";
 import { ApolloClients, provideApolloClients } from "@vue/apollo-composable";
-import { ApolloLink, createHttpLink, split } from "@apollo/client/core";
+import { ApolloClient, ApolloLink, createHttpLink, split } from "@apollo/client/core";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { setContext } from "@apollo/client/link/context";
 import createRestartableClient from "./ws.js";
@@ -95,6 +95,16 @@ export default defineNuxtPlugin((nuxtApp) => {
         ]
       ]
     ]);
+    clients[key] = new ApolloClient({
+      link,
+      ...NuxtApollo.clientAwareness && { name: key },
+      ...import.meta.server ? { ssrMode: true } : { ssrForceFetchDelay: 100 },
+      devtools: { enabled: clientConfig.connectToDevTools || false },
+      defaultOptions: clientConfig?.defaultOptions
+    });
+    if (!clients?.default && !NuxtApollo?.clients?.default && key === Object.keys(NuxtApollo.clients)[0]) {
+      clients.default = clients[key];
+    }
   }
   provideApolloClients(clients);
   nuxtApp.vueApp.provide(ApolloClients, clients);
