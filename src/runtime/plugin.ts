@@ -125,33 +125,6 @@ export default defineNuxtPlugin((nuxtApp) => {
                 ])
           ])
     ])
-
-    const cache = new InMemoryCache(clientConfig.inMemoryCacheOptions)
-
-    clients[key as ApolloClientKeys] = new ApolloClient({
-      link,
-      cache,
-      ...(NuxtApollo.clientAwareness && { name: key }),
-      ...(import.meta.server
-        ? { ssrMode: true }
-        : { ssrForceFetchDelay: 100 }),
-      devtools: { enabled: clientConfig.connectToDevTools || false },
-      defaultOptions: clientConfig?.defaultOptions
-    })
-
-    if (!clients?.default && !NuxtApollo?.clients?.default && key === Object.keys(NuxtApollo.clients)[0]) {
-      clients.default = clients[key as ApolloClientKeys]
-    }
-
-    const cacheKey = `_apollo:${key}`
-
-    nuxtApp.hook('app:rendered', () => {
-      nuxtApp.payload.data[cacheKey] = cache.extract()
-    })
-
-    if (import.meta.client && nuxtApp.payload.data[cacheKey]) {
-      cache.restore(destr(JSON.stringify(nuxtApp.payload.data[cacheKey])))
-    }
   }
 
   provideApolloClients(clients)
