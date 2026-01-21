@@ -1,0 +1,12 @@
+{
+  "name": "@nuxtjs/apollo",
+  "version": "5.0.0-alpha.16",
+  "configKey": "apollo",
+  "compatibility": {
+    "nuxt": "^3.0.0 || ^4.0.0"
+  },
+  "builder": {
+    "@nuxt/module-builder": "1.0.2",
+    "unbuild": "3.6.0"
+  }
+}
