@@ -1,9 +1,9 @@
 import { destr } from 'destr'
-import { onError } from '@apollo/client/link/error'
+import { ErrorLink } from '@apollo/client/link/error'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { createApolloProvider } from '@vue/apollo-option'
 import { ApolloClients, provideApolloClients } from '@vue/apollo-composable'
-import { ApolloClient, ApolloLink, createHttpLink, InMemoryCache, split } from '@apollo/client/core'
+import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { setContext } from '@apollo/client/link/context'
 import type { ClientConfig, ErrorResponse } from '../types'
@@ -18,7 +18,7 @@ import type { ApolloClientKeys } from '#apollo'
 export default defineNuxtPlugin((nuxtApp) => {
   const requestCookies = (import.meta.server && NuxtApollo.proxyCookies && useRequestHeaders(['cookie'])) || undefined
 
-  const clients = {} as Record<ApolloClientKeys, ApolloClient<unknown>>
+  const clients = {} as Record<ApolloClientKeys, ApolloClient>
 
   for (const [key, clientConfig] of Object.entries(NuxtApollo.clients) as [ApolloClientKeys, ClientConfig][]) {
     const getAuth = async () => {
@@ -73,7 +73,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
     })
 
-    const httpLink = authLink.concat(createHttpLink({
+    const httpLink = authLink.concat(new HttpLink({
       ...(clientConfig?.httpLinkOptions && clientConfig.httpLinkOptions),
       uri: (import.meta.client && clientConfig.browserHttpEndpoint) || clientConfig.httpEndpoint,
       headers: { ...(clientConfig?.httpLinkOptions?.headers || {}) }
@@ -104,7 +104,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       nuxtApp._apolloWsClients[key] = wsClient
     }
 
-    const errorLink = onError((err) => {
+    const errorLink = new ErrorLink((err) => {
       nuxtApp.callHook('apollo:error', err)
     })
 
@@ -116,7 +116,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             ...(clientConfig?.websocketsOnly
               ? [wsLink]
               : [
-                  split(({ query }) => {
+                  ApolloLink.split(({ query }) => {
                     const definition = getMainDefinition(query)
                     return (definition.kind === 'OperationDefinition' && definition.operation === 'subscription')
                   },
@@ -131,10 +131,14 @@ export default defineNuxtPlugin((nuxtApp) => {
     clients[key as ApolloClientKeys] = new ApolloClient({
       link,
       cache,
-      ...(NuxtApollo.clientAwareness && { name: key }),
+      clientAwareness: {
+        ...(NuxtApollo.clientAwareness && { name: key }),
+      },
+
       ...(import.meta.server
         ? { ssrMode: true }
         : { ssrForceFetchDelay: 100 }),
+
       devtools: { enabled: clientConfig.connectToDevTools || false },
       defaultOptions: clientConfig?.defaultOptions
     })
@@ -177,8 +181,8 @@ export interface ModuleRuntimeHooks {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface DollarApolloHelpers extends ReturnType<typeof useApollo> {}
 interface DollarApollo {
-  clients: Record<ApolloClientKeys, ApolloClient<unknown>>
-  defaultClient: ApolloClient<unknown>
+  clients: Record<ApolloClientKeys, ApolloClient>
+  defaultClient: ApolloClient
 }
 
 declare module '#app' {

@@ -1,5 +1,5 @@
 import type { ClientOptions } from 'graphql-ws'
-import type { HttpOptions, DefaultOptions, InMemoryCacheConfig } from '@apollo/client'
+import type { HttpOptions, InMemoryCacheConfig, ApolloClient } from '@apollo/client'
 import type { CookieOptions } from 'nuxt/app'
 
 export type { ErrorResponse } from '@apollo/client/link/error'
@@ -60,7 +60,7 @@ export type ClientConfig = {
   /**
    * Configure default options to be applied to the apollo client.
    */
-  defaultOptions?: DefaultOptions
+  defaultOptions?: ApolloClient.DefaultOptions
 
   /**
    * Configure the in-memory cache.
@@ -120,7 +120,7 @@ export interface NuxtApolloConfig<T = false> {
    * Default options to be applied to all Apollo clients.
    * This is useful for setting global defaults, and is overridden by `defaultOptions` passed directly to clients.
    */
-  defaultOptions?: DefaultOptions
+  defaultOptions?: ApolloClient.DefaultOptions
 
   /**
    * Pass cookies from the browser to the GraphQL API in SSR mode.

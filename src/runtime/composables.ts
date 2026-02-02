@@ -1,6 +1,6 @@
 import { hash } from 'ohash'
 import { print } from 'graphql'
-import type { ApolloClient, OperationVariables, QueryOptions, DefaultContext } from '@apollo/client'
+import type { OperationVariables, DefaultContext, ApolloClient } from '@apollo/client'
 import type { AsyncData, AsyncDataOptions, NuxtError, NuxtApp } from 'nuxt/app'
 import type { RestartableClient } from './ws'
 import { ref, unref, isRef, reactive, useCookie, useNuxtApp, useAsyncData } from '#imports'
@@ -11,8 +11,8 @@ import type { ClientConfig } from '../types'
 type PickFrom<T, K extends Array<string>> = T extends Array<unknown> ? T : T extends Record<string, unknown> ? keyof T extends K[number] ? T : K[number] extends never ? T : Pick<T, K[number]> : T
 type KeysOf<T> = Array<T extends T ? keyof T extends string ? keyof T : never : never>
 
-type TQuery<T> = QueryOptions<OperationVariables, T>['query']
-type TVariables<T> = QueryOptions<OperationVariables, T>['variables'] | null
+type TQuery<T> = ApolloClient.QueryOptions<T, OperationVariables>['query']
+type TVariables<T> = ApolloClient.QueryOptions<T, OperationVariables>['variables'] | null
 type TAsyncQuery<T> = {
   /**
    * A unique key to ensure the query can be properly de-duplicated across requests. Defaults to a hash of the query and variables.
@@ -189,7 +189,7 @@ export function useApollo(): {
   /**
    * Access the configured apollo clients.
    */
-  clients: Record<ApolloClientKeys, ApolloClient<unknown>> | undefined
+  clients: Record<ApolloClientKeys, ApolloClient> | undefined
   /**
    * Retrieve the auth token for the specified client. Adheres to the `apollo:auth` hook.
    *
@@ -217,7 +217,7 @@ export function useApollo(): {
 
 export function useApollo() {
   const nuxtApp = useNuxtApp() as NuxtApp & {
-    _apolloClients?: Record<ApolloClientKeys, ApolloClient<unknown>>
+    _apolloClients?: Record<ApolloClientKeys, ApolloClient>
     _apolloWsClients?: Record<ApolloClientKeys, RestartableClient>
   }
 

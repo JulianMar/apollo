@@ -50,15 +50,6 @@ export default defineNuxtModule<ModuleOptions>({
     const { resolve } = createResolver(import.meta.url)
     const rootResolver = createResolver(nuxt.options.rootDir)
 
-    nuxt.options.build.transpile = nuxt.options.build.transpile || []
-    nuxt.options.build.transpile.push(
-      resolve('runtime'),
-      'tslib',
-      '@wry/context',
-      '@apollo/client',
-      '@vue/apollo-composable',
-      'ts-invariant/process')
-
     const clients: Record<string, ClientConfig> = {}
     const configPaths: Record<string, string> = {}
 
